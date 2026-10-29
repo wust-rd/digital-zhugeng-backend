@@ -24,6 +24,9 @@
 Thumbs.db
 rebel.xml
 
+# 本地敏感配置（数据库口令等），只允许提交 application-secret.yml.example 模板
+**/application-secret.yml
+
 # AI agents
 .agents
 .claude

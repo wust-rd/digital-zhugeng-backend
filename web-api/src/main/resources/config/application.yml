@@ -59,9 +59,34 @@ jdbc:
   type: dameng
   driver: dm.jdbc.driver.DmDriver
   url: jdbc:dm://10.13.31.135:5236/DIGITAL_ZHUGENG_DEV?schema=DIGITAL_ZHUGENG_DEV
-  username: csgx_xk
-  password: xscKms938s
+  username: ${DM_USERNAME:csgx_xk}
+  password: ${DM_PASSWORD:}
   testSql: SELECT 1 FROM DUAL
+
+  # 多数据源：工地库（ZHGD_2，只读查询，账号 read_all 本身仅具 SELECT 权限，
+  # 应用层也严禁向该数据源写入：只允许把查询类 Dao 指定到此数据源）
+  dataSourceNames: gongdi
+  gongdi:
+    type: dameng
+    driver: dm.jdbc.driver.DmDriver
+    url: jdbc:dm://10.13.28.237:5236/ZHGD_2?schema=ZHGD_2
+    username: ${GD_USERNAME:read_all}
+    password: ${GD_PASSWORD:}
+    testSql: SELECT 1 FROM DUAL
+    # 连接池调小即可（只做查询，负载很低）
+    # init/minIdle 必须为 0：工地库是辅助只读数据源，采用懒加载，
+    # 否则它一旦不可用（网络不通/实例重启），Druid 初始化失败会直接导致整个服务启动失败
+    pool:
+      init: 0
+      minIdle: 0
+      maxActive: 10
+      maxWait: 10000
+
+  # Dao 与数据源映射（Dao 类名 = 数据源名称，优先于 @MyBatisDao(dataSourceName) 注解）
+  # 用法一：在映射里按包/类指定，如  com.jeesite.modules.gongdi.dao. = gongdi
+  # 用法二：在 Dao 上加 @MyBatisDao(dataSourceName="gongdi")
+  mybatisDaoAndDataSourceMappings: |
+    com.jeesite.modules.gongdi.dao. = gongdi
 
 #  # Oracle 数据库配置
 #  type: oracle
@@ -262,6 +287,12 @@ spring:
   # 应用程序名称
   application:
     name: jeesite-web-api
+
+  # 【本地密钥】不被 Git 跟踪的配置文件，存放真实数据库口令等敏感项。
+  # optional: 表示文件不存在也不报错——新同事拉代码后自建该文件，或用 DM_PASSWORD / GD_PASSWORD
+  # 环境变量覆盖即可。application.yml 中的 jdbc.password 一律写成 ${DM_PASSWORD:} 占位。
+  config:
+    import: optional:classpath:config/application-secret.yml
     
   # 当前环境名称，支持 JVM 参数设置，如: -Dspring.profiles.active=prod
   profiles:
@@ -721,6 +752,7 @@ shiro:
   # URI 权限过滤器定义（自定义添加参数时，请不要移除 ${adminPath}/** = user，否则会导致权限异常）
   # 提示：填写过滤规则，请注意先后顺序，从上到下，先匹配先受用规则，匹配成功后不再继续匹配。
   filterChainDefinitions: |
+    /api/env/** = anon
     ${adminPath}/** = user
     /** = anon
 
@@ -1047,3 +1079,36 @@ msg:
 #======================================#
 #========== Project settings ==========#
 #======================================#
+
+#======================================#
+#==== 工地环境监测（噪声扬尘）开放接口 ====#
+#======================================#
+gongdi-env:
+
+  # 默认查询的项目ID（英文逗号分隔），接口未传 projectIds 参数时使用
+  # 说明：明细数据按项目分表存放，表名为 Z_ENVIRONMENTAL_RECORD_{项目ID}
+  project-ids: 635320,644423,632474,636613,650154,636685,635686,632472,636927,635418
+
+  # 明细 SQL 实现模式
+  # dynamic   = 逐台设备查询，表名由 ${tableName} 动态拼接（Service 层用纯数字白名单校验，防注入）
+  # hardcoded = 10 个项目的分表名写死在 EnvMonitorDao.xml 里，用 UNION ALL 串成一条 SQL，一次查完
+  # 两种模式返回结果完全一致，接口也可用 ?sqlMode= 临时覆盖
+  sql-mode: dynamic
+
+  # dynamic 模式下取最新记录的方式（1 ~ 10000）；hardcoded 模式不使用本项
+  #   1   = 纯主键法（当前默认）：直接按 ENVIRONMENTAL_RECORD_ID 倒序取 1 条，
+  #         SQL 最短、走主键索引最快。前提是"主键最大即采集时间最新"，
+  #         正常顺序写入时成立；若出现补录/回溯导入/多源写入会取到偏早的一条且不会报错。
+  #  >1    = 主键候选 + 时间兜底：先按主键倒序取 N 条，再在这 N 条里按 RECORD_TIME
+  #         倒序取第一条，兼顾速度与准确度（N=200 时实测耗时与纯主键法几乎相同）。
+  candidate-limit: 1
+
+  # 临时排除的「已停报」设备ID（英文逗号分隔）。
+  # 这 4 台设备仍挂在对应项目下，但最后一次上报距今已久：
+  #   722354（项目632474）最后数据 2024-04-25
+  #   741027（项目635418）最后数据 2024-05-10
+  #   746257（项目635686）最后数据 2026-03-16
+  #   828052（项目636927）最后数据 2026-06-09
+  # 配置后，这些设备会在明细查询【之前】被剔除，一条 SQL 都不会发，接口返回结果由 11 条变为 7 条。
+  # 【恢复方法】把本项清空（留空即可），无需改代码。
+  exclude-device-ids: 722354,741027,746257,828052
