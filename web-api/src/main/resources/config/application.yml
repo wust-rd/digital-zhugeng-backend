@@ -59,8 +59,8 @@ jdbc:
   type: dameng
   driver: dm.jdbc.driver.DmDriver
   url: jdbc:dm://10.13.31.135:5236/DIGITAL_ZHUGENG_DEV?schema=DIGITAL_ZHUGENG_DEV
-  username: ${DM_USERNAME:csgx_xk}
-  password: ${DM_PASSWORD:}
+  username: csgx_xk
+  password: xscKms938s
   testSql: SELECT 1 FROM DUAL
 
   # 多数据源：工地库（ZHGD_2，只读查询，账号 read_all 本身仅具 SELECT 权限，
@@ -70,8 +70,8 @@ jdbc:
     type: dameng
     driver: dm.jdbc.driver.DmDriver
     url: jdbc:dm://10.13.28.237:5236/ZHGD_2?schema=ZHGD_2
-    username: ${GD_USERNAME:read_all}
-    password: ${GD_PASSWORD:}
+    username: read_all
+    password: Read@123456
     testSql: SELECT 1 FROM DUAL
     # 连接池调小即可（只做查询，负载很低）
     # init/minIdle 必须为 0：工地库是辅助只读数据源，采用懒加载，
@@ -288,11 +288,6 @@ spring:
   application:
     name: jeesite-web-api
 
-  # 【本地密钥】不被 Git 跟踪的配置文件，存放真实数据库口令等敏感项。
-  # optional: 表示文件不存在也不报错——新同事拉代码后自建该文件，或用 DM_PASSWORD / GD_PASSWORD
-  # 环境变量覆盖即可。application.yml 中的 jdbc.password 一律写成 ${DM_PASSWORD:} 占位。
-  config:
-    import: optional:classpath:config/application-secret.yml
     
   # 当前环境名称，支持 JVM 参数设置，如: -Dspring.profiles.active=prod
   profiles:
