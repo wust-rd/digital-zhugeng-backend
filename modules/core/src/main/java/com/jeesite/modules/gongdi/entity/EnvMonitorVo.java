@@ -73,6 +73,15 @@ public class EnvMonitorVo implements Serializable {
 	/** 是否有监测数据（false 表示设备存在但分表内无有效记录） */
 	private boolean hasData;
 
+	// ========== 等级判定 ==========
+
+	/**
+	 * 综合颜色标记：噪声与扬尘分别按各自标准定级后，取优先级最高的一个
+	 * （1 红 &gt; 2 橙 &gt; 3 黄 &gt; 4 蓝，1 最紧急）。
+	 * 噪声、扬尘两者都无有效数值时为 null。
+	 */
+	private Integer colorLevel;
+
 	public Long getEngineeringId() {
 		return engineeringId;
 	}
@@ -207,6 +216,14 @@ public class EnvMonitorVo implements Serializable {
 
 	public void setHasData(boolean hasData) {
 		this.hasData = hasData;
+	}
+
+	public Integer getColorLevel() {
+		return colorLevel;
+	}
+
+	public void setColorLevel(Integer colorLevel) {
+		this.colorLevel = colorLevel;
 	}
 
 }

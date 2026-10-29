@@ -7,6 +7,8 @@ package com.jeesite.modules.gongdi.service;
 import com.jeesite.modules.gongdi.dao.EnvMonitorDao;
 import com.jeesite.modules.gongdi.entity.EnvMonitorVo;
 import com.jeesite.modules.gongdi.entity.EnvRecord;
+import com.jeesite.modules.gongdi.enums.EnvLevel;
+import com.jeesite.modules.gongdi.util.EnvLevelEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -223,6 +225,31 @@ public class EnvMonitorService {
 		vo.setTsp(r.getTsp());
 		vo.setRecordTime(r.getRecordTime());
 		vo.setHasData(true);
+		applyLevel(vo);
+	}
+
+	/**
+	 * 按《噪声和扬尘国家标准》给这一行定级。
+	 * <p>
+	 * 噪声与扬尘各按自身标准分档定级，综合标记取两者中优先级最高的一个
+	 * （1 红 &gt; 2 橙 &gt; 3 黄 &gt; 4 蓝，见 {@link EnvLevel#worst}）。
+	 * 任一指标无有效数值时不参与综合判定；两者都无值时标记为 null。
+	 *
+	 * @param vo 已填好噪声/扬尘/采集时间的结果行
+	 */
+	private void applyLevel(EnvMonitorVo vo) {
+
+		// 昼夜时段决定噪声用哪套阈值；采集时间无法解析时按昼间处理
+		Integer hour = EnvLevelEvaluator.parseHour(vo.getRecordTime());
+		boolean night = EnvLevelEvaluator.isNight(hour);
+
+		EnvLevel noiseLevel = EnvLevelEvaluator.evalNoise(EnvLevelEvaluator.parse(vo.getNoise()), night);
+		EnvLevel tspLevel = EnvLevelEvaluator.evalTsp(EnvLevelEvaluator.parse(vo.getTsp()));
+		EnvLevel overall = EnvLevel.worst(noiseLevel, tspLevel);
+
+		if (overall != null) {
+			vo.setColorLevel(overall.getRank());
+		}
 	}
 
 	/**
