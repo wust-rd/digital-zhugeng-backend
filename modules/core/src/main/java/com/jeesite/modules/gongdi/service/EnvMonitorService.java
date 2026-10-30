@@ -43,7 +43,7 @@ public class EnvMonitorService {
 	/**
 	 * 查询的项目ID，逗号分隔
 	 */
-	@Value("${gongdi-env.project-ids:635320,644423,632474,636613,650154,636685,635686,632472,636927,635418}")
+	@Value("${gongdi-env.project-ids:}")
 	private String projectIds;
 
 	/**
@@ -61,7 +61,7 @@ public class EnvMonitorService {
 	/**
 	 * 查询各项目环境监测设备的最新监测值
 	 *
-	 * @return 每台设备一条；无设备的项目不产生数据
+	 * @return 每台设备一条；无设备的项目整项目不返回
 	 */
 	public List<EnvMonitorVo> queryLatest() {
 
@@ -83,16 +83,46 @@ public class EnvMonitorService {
 				logger.info("[环境监测] 按配置排除停报设备，设备清单 {} → {} 条", before, list.size());
 			}
 		}
+
+		// 3. 核对项目级过滤结果：无设备的项目已在上两步剔除，这里记录被过滤掉的项目
+		logProjectsWithoutDevice(list, ids);
 		if (list.isEmpty()) {
-			logger.warn("[环境监测] 项目 {} 下无有效环境监测设备或全部被排除", ids);
+			logger.warn("[环境监测] 项目 {} 下无有效环境监测设备", ids);
 			return list;
 		}
 
-		// 3. 逐台设备补最新监测值（明细按项目分表，无法合并成一条 SQL）
+		// 4. 逐台设备补最新监测值（明细按项目分表，无法合并成一条 SQL）
 		for (EnvMonitorVo vo : list) {
 			fillLatest(vo);
 		}
 		return list;
+	}
+
+	/**
+	 * 记录被过滤掉的项目：项目下没有任何环境监测设备，或设备已全部停报。
+	 * <p>
+	 * 过滤本身由 findProjectDevices 的 INNER JOIN 与上一步的设备剔除完成，
+	 * 这里只做核对与日志，便于发现配置里挂空的项目。
+	 *
+	 * @param list 设备行
+	 * @param ids  配置的项目ID
+	 */
+	private void logProjectsWithoutDevice(List<EnvMonitorVo> list, List<String> ids) {
+
+		Set<Long> withDevice = new LinkedHashSet<>();
+		for (EnvMonitorVo vo : list) {
+			withDevice.add(vo.getEngineeringId());
+		}
+
+		List<String> emptyProjects = new ArrayList<>();
+		for (String id : ids) {
+			if (!withDevice.contains(Long.valueOf(id))) {
+				emptyProjects.add(id);
+			}
+		}
+		if (!emptyProjects.isEmpty()) {
+			logger.info("[环境监测] 以下项目无环境监测设备，已过滤：{}", emptyProjects);
+		}
 	}
 
 	/**
@@ -113,8 +143,14 @@ public class EnvMonitorService {
 			vo.setHasData(true);
 			applyLevel(vo);
 		} catch (Exception ex) {
+			// 取根因消息即可：分表缺失是最常见原因，完整堆栈每次调用都会刷 30 行
+			Throwable root = ex;
+			while (root.getCause() != null && root.getCause() != root) {
+				root = root.getCause();
+			}
 			logger.warn("[环境监测] 设备 {}（项目 {}）最新数据查询失败：{}",
-				vo.getAccessDeviceId(), vo.getEngineeringId(), ex.getMessage());
+				vo.getAccessDeviceId(), vo.getEngineeringId(),
+				root.getMessage() == null ? root.getClass().getSimpleName() : root.getMessage().replaceAll("\\s+", " ").trim());
 		}
 	}
 
