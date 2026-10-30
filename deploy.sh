@@ -9,6 +9,9 @@
 #   bash deploy.sh 8003 --rollback   用 web.war.bak 回滚并重启
 #   bash deploy.sh 8003 --dir <路径> 手动指定后端目录（未登记的环境）
 #
+# 说明：目录名中的 8004 是历史命名，实际监听端口由远端 config/application.yml 决定（当前 8005），
+#       健康检查地址也从该配置自动推导，改端口只需改配置后执行 ./start.sh restart。
+#
 # 前置条件：本机已配置到目标机的免密 SSH；后端目录内有可执行的 start.sh。
 # 发布期间后端服务会在 restart 时短暂中断。
 
