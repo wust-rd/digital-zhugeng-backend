@@ -3,13 +3,13 @@
 # 后端一键发布：打包 → 上传 web.war → 远端替换并重启
 #
 # 用法（第一个参数是前端端口，前后端一一对应，只记前端即可）：
-#   bash deploy.sh 8003              前端 dev（10.13.31.36:8003）→ 后端 /data/service/digital-zhugeng-backend-8004
+#   bash deploy.sh 8003              前端 dev（10.13.31.36:8003）→ 后端 /data/service/digital-zhugeng-backend-8005
 #   bash deploy.sh 8003 --skip-build 跳过打包，直接发布现有 web-api/target/web.war
 #   bash deploy.sh 8003 --dry-run    只做检查与计划打印，不写远端
 #   bash deploy.sh 8003 --rollback   用 web.war.bak 回滚并重启
 #   bash deploy.sh 8003 --dir <路径> 手动指定后端目录（未登记的环境）
 #
-# 说明：目录名中的 8004 是历史命名，实际监听端口由远端 config/application.yml 决定（当前 8005），
+# 说明：实际监听端口由远端 config/application.yml 决定（当前 8005，与目录名一致），
 #       健康检查地址也从该配置自动推导，改端口只需改配置后执行 ./start.sh restart。
 #
 # 前置条件：本机已配置到目标机的免密 SSH；后端目录内有可执行的 start.sh。
@@ -44,7 +44,7 @@ die() { printf '\n[错误] %s\n' "$*" >&2; exit 1; }
 # 前端端口 → 后端目录（前后端按端口一一对应）
 dir_for_port() {
   case "$1" in
-    8003) printf '%s' '/data/service/digital-zhugeng-backend-8004' ;;
+    8003) printf '%s' '/data/service/digital-zhugeng-backend-8005' ;;
     *)    printf '%s' '' ;;
   esac
 }
