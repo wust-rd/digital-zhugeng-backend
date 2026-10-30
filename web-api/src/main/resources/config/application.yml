@@ -23,7 +23,7 @@ apiMode: true
 
 server:
 
-  port: 8980
+  port: 8990
   servlet:
     context-path: /js
     register-default-servlet: false
@@ -669,7 +669,7 @@ shiro:
 
 #  # Apereo CAS 相关配置（标准版）
 #  casServerUrl: http://127.0.0.1:8981/cas
-#  casClientUrl: http://127.0.0.1:8980/js
+#  casClientUrl: http://127.0.0.1:8990/js
 #  loginUrl: ${shiro.casServerUrl}?service=${shiro.casClientUrl}${adminPath}/login-cas
 #  logoutUrl: ${shiro.casServerUrl}/logout?service=${shiro.loginUrl}
 #  successUrl: ${shiro.casClientUrl}${adminPath}/index
