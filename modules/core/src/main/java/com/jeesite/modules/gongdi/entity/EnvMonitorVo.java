@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2013-Now https://jeesite.com All rights reserved.
- * No deletion without permission, or be held responsible to law.
- */
 package com.jeesite.modules.gongdi.entity;
 
 import java.io.Serializable;
@@ -18,67 +14,100 @@ public class EnvMonitorVo implements Serializable {
 
 	// ========== 项目信息 ==========
 
-	/** 项目ID */
+	/**
+	 * 项目ID
+	 */
 	private Long engineeringId;
 
-	/** 项目名称 */
+	/**
+	 * 项目名称
+	 */
 	private String engineeringName;
 
-	/** 经度 */
+	/**
+	 * 经度
+	 */
 	private String lng;
 
-	/** 纬度 */
+	/**
+	 * 纬度
+	 */
 	private String lat;
 
-	/** 项目地址 */
+	/**
+	 * 项目地址
+	 */
 	private String address;
 
 	// ========== 设备信息 ==========
 
-	/** 设备ID */
+	/**
+	 * 设备ID
+	 */
 	private Long accessDeviceId;
 
-	/** 设备编号 */
+	/**
+	 * 设备编号
+	 */
 	private String deviceNo;
 
-	/** 设备名称 */
+	/**
+	 * 设备名称
+	 */
 	private String deviceName;
 
-	/** 监测部位 */
+	/**
+	 * 监测部位
+	 */
 	private String monitorPlace;
 
-	/** 设备状态 */
+	/**
+	 * 设备状态
+	 */
 	private Integer deviceStatus;
 
-	/** 是否在线（1 在线 0 离线） */
+	/**
+	 * 是否在线（1 在线 0 离线）
+	 */
 	private Integer isOnline;
 
 	// ========== 最新监测值 ==========
 
-	/** 噪声 */
+	/**
+	 * 噪声
+	 */
 	private String noise;
 
-	/** 温度 */
+	/**
+	 * 温度
+	 */
 	private String temp;
 
-	/** 湿度 */
+	/**
+	 * 湿度
+	 */
 	private String humid;
 
-	/** 扬尘（TSP） */
+	/**
+	 * 扬尘（TSP）
+	 */
 	private String tsp;
 
-	/** 采集时间 yyyy-MM-dd HH:mm:ss */
+	/**
+	 * 采集时间 yyyy-MM-dd HH:mm:ss
+	 */
 	private String recordTime;
 
-	/** 是否有监测数据（false 表示设备存在但分表内无有效记录） */
+	/**
+	 * 是否有监测数据（false 表示设备存在但分表内无有效记录）
+	 */
 	private boolean hasData;
 
 	// ========== 等级判定 ==========
 
 	/**
-	 * 综合颜色标记：噪声与扬尘分别按各自标准定级后，取优先级最高的一个
-	 * （1 红 &gt; 2 橙 &gt; 3 黄 &gt; 4 蓝，1 最紧急）。
-	 * 噪声、扬尘两者都无有效数值时为 null。
+	 * 综合颜色标记：噪声与扬尘各按自身标准定级后取优先级最高的一个
+	 * （1 红 > 2 橙 > 3 黄 > 4 蓝）；两者都无有效数值时为 null
 	 */
 	private Integer colorLevel;
 

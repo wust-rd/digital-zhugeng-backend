@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2013-Now https://jeesite.com All rights reserved.
- * No deletion without permission, or be held responsible to law.
- */
 package com.jeesite.modules.gongdi.enums;
 
 /**
@@ -44,11 +40,6 @@ public enum EnvLevel {
 
 	public int getRank() {
 		return rank;
-	}
-
-	/** 枚举名即接口返回的颜色代码，如 RED / ORANGE / YELLOW / BLUE */
-	public String getCode() {
-		return name();
 	}
 
 	/**

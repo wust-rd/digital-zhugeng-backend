@@ -1,7 +1,3 @@
-/**
- * Copyright (c) 2013-Now https://jeesite.com All rights reserved.
- * No deletion without permission, or be held responsible to law.
- */
 package com.jeesite.modules.gongdi.entity;
 
 import java.io.Serializable;
@@ -16,30 +12,34 @@ public class EnvRecord implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	/** 设备ID */
+	/**
+	 * 设备ID
+	 */
 	private Long accessDeviceId;
 
 	/**
-	 * 项目ID。
-	 * 仅 UNION ALL 版（{@code findLatestRecordsUnionAll}）会填充——
-	 * 一次查 10 张分表时，必须由 SQL 用常量带出"这条记录属于哪个项目"，
-	 * 否则回来无法和设备对应上。单表版不填。
+	 * 噪声
 	 */
-	private Long engineeringId;
-
-	/** 噪声 */
 	private String noise;
 
-	/** 温度 */
+	/**
+	 * 温度
+	 */
 	private String temp;
 
-	/** 湿度 */
+	/**
+	 * 湿度
+	 */
 	private String humid;
 
-	/** 扬尘（TSP） */
+	/**
+	 * 扬尘（TSP）
+	 */
 	private String tsp;
 
-	/** 采集时间（已格式化为 yyyy-MM-dd HH:mm:ss） */
+	/**
+	 * 采集时间（已格式化为 yyyy-MM-dd HH:mm:ss）
+	 */
 	private String recordTime;
 
 	public Long getAccessDeviceId() {
@@ -48,14 +48,6 @@ public class EnvRecord implements Serializable {
 
 	public void setAccessDeviceId(Long accessDeviceId) {
 		this.accessDeviceId = accessDeviceId;
-	}
-
-	public Long getEngineeringId() {
-		return engineeringId;
-	}
-
-	public void setEngineeringId(Long engineeringId) {
-		this.engineeringId = engineeringId;
 	}
 
 	public String getNoise() {

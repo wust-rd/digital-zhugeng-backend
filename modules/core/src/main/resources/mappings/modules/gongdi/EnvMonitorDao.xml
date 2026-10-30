@@ -22,19 +22,8 @@
 		<result property="isOnline" column="isOnline"/>
 	</resultMap>
 
-	<!-- 单表版明细结果 -->
+	<!-- 明细结果 -->
 	<resultMap id="envRecordMap" type="com.jeesite.modules.gongdi.entity.EnvRecord">
-		<result property="accessDeviceId" column="accessDeviceId"/>
-		<result property="noise" column="noise"/>
-		<result property="temp" column="temp"/>
-		<result property="humid" column="humid"/>
-		<result property="tsp" column="tsp"/>
-		<result property="recordTime" column="recordTime"/>
-	</resultMap>
-
-	<!-- UNION ALL 版明细结果（多带一个项目ID） -->
-	<resultMap id="envRecordUnionMap" type="com.jeesite.modules.gongdi.entity.EnvRecord">
-		<result property="engineeringId" column="engineeringId"/>
 		<result property="accessDeviceId" column="accessDeviceId"/>
 		<result property="noise" column="noise"/>
 		<result property="temp" column="temp"/>
@@ -45,9 +34,9 @@
 
 	<!--
 	  项目 + 环境监测设备（DEVICE_TYPE = 1）
-	  用 INNER JOIN 而非两次查询：既省一次往返，也保证"设备所属项目已删除"的行不会出现
-	  （否则会出现设备有值、项目名称为空的行）。
-  -->
+	  用 INNER JOIN 而非两次查询：既省一次往返，
+	  也保证"设备所属项目已删除"的行不会出现（否则会出现设备有值、项目名称为空的行）。
+	-->
 	<select id="findProjectDevices" resultMap="envMonitorMap">
 		SELECT e.ENGINEERING_ID AS "engineeringId",
 		       e.NAME           AS "engineeringName",
@@ -73,247 +62,25 @@
 	</select>
 
 	<!--
-	  某台设备的最新一条监测记录（动态表名版，逐设备调用）
+	  某台设备的最新一条监测记录（动态表名，逐设备调用）
 
-	  按 gongdi-env.candidate-limit 走两条不同的 SQL：
-
-	  【limit = 1】纯主键法（当前默认）
-	    直接按 ENVIRONMENTAL_RECORD_ID 倒序取 1 条，SQL 最短，走主键索引。
-	    前提是「主键最大即采集时间最新」——正常顺序写入时成立，
-	    若日后出现补录 / 回溯导入 / 多源写入，会取到偏早的一条且不会报错。
-	    （本接口取 `ORDER BY 主键 DESC FETCH FIRST 1` 形式）
-
-	  【limit > 1】主键候选 + 时间兜底
-	    内层按主键倒序取 N 条（走主键索引，避免全表排序），
-	    外层在这 N 条里按【原始 TIMESTAMP】倒序取第一条，兼顾速度与准确度。
-	    同一秒内多条记录时不能用格式化字符串排序，故多带出 recordTimeRaw。
-
-	  ${limit} 来自 int 配置项而非用户入参，不存在注入面。
-	  ${tableName} 由 Service 用纯数字白名单校验后拼接，同样无注入面。
+	  按主键倒序取 1 条，走主键索引。前提是「主键最大即采集时间最新」，
+	  正常顺序写入时成立；若出现补录 / 回溯导入 / 多源写入，会取到偏早的一条且不会报错。
+	  ${tableName} 由 Service 用纯数字白名单校验后拼接，无注入面。
 	-->
 	<select id="findLatestRecord" resultMap="envRecordMap">
-		<choose>
-			<when test="limit == null or limit &lt;= 1">
-				SELECT ACCESS_DEVICE_ID AS "accessDeviceId",
-				       NOISE            AS "noise",
-				       TEMP             AS "temp",
-				       HUMID            AS "humid",
-				       TSP              AS "tsp",
-				       TO_CHAR(RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-				FROM ${tableName}
-				WHERE ACCESS_DEVICE_ID = #{deviceId}
-				  AND IS_DELETE = 0
-				  AND RECORD_TIME IS NOT NULL
-				ORDER BY ENVIRONMENTAL_RECORD_ID DESC
-				FETCH FIRST 1 ROWS ONLY
-			</when>
-			<otherwise>
-				SELECT * FROM (
-					SELECT ACCESS_DEVICE_ID AS "accessDeviceId",
-					       NOISE            AS "noise",
-					       TEMP             AS "temp",
-					       HUMID            AS "humid",
-					       TSP              AS "tsp",
-					       RECORD_TIME      AS "recordTimeRaw",
-					       TO_CHAR(RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-					FROM ${tableName}
-					WHERE ACCESS_DEVICE_ID = #{deviceId}
-					  AND IS_DELETE = 0
-					  AND RECORD_TIME IS NOT NULL
-					ORDER BY ENVIRONMENTAL_RECORD_ID DESC
-					FETCH FIRST ${limit} ROWS ONLY
-				) T
-				ORDER BY T."recordTimeRaw" DESC
-				FETCH FIRST 1 ROWS ONLY
-			</otherwise>
-		</choose>
-	</select>
-
-	<!--
-	  ==================== 硬编码 10 个项目 + UNION ALL（一次查完） ====================
-
-	  10 个项目的分表名全部写死在下面 10 段 SQL 里，UNION ALL 串成一条语句，
-	  一次数据库往返取回全部设备的最新值，不再逐设备循环。
-
-	  每段的取最新口径：
-	    ROW_NUMBER() OVER (PARTITION BY ACCESS_DEVICE_ID ORDER BY RECORD_TIME DESC) = 1
-	    即"每台设备取采集时间最新的一条"，与 docs/sql/gongdi_env_latest_hardcoded.sql
-	    的离线核对脚本**完全一致**（同一口径、同一结果），可两边对照。
-	    注：dynamic 模式为了提高速度先按主键倒序取候选再按时间取，
-	    两者在实测 11 台设备上结果相同；此处硬编码版因是全表扫，直接用时间排序最严格。
-
-	  每段第一列 635320 等常量是"项目ID"，用来标记这条记录属于哪个项目——
-	  这是 UNION ALL 版必须带的信息，否则回来无法和设备对应。
-
-	  性能提示：
-	    每段都是"全表扫 + 窗口排序"，大表（如 632472 共 165 万行）会到秒级；
-	    这是硬编码版的固有代价（换来一次往返 + SQL 可离线审计）。
-	    接口默认走 dynamic 模式（逐设备主键倒序，11 台合计约 100ms），
-	    本语句用于 sqlMode=hardcoded 及离线核对。
-
-	  维护提示：
-	    项目增减必须同步改这里（同时改 Service 的 FIXED_TABLE_PROJECTS 白名单）。
-	-->
-	<select id="findLatestRecordsUnionAll" resultMap="envRecordUnionMap">
-
-		<!-- 项目 635320 -->
-		SELECT 635320 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_635320 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 644423 -->
-		SELECT 644423 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_644423 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 632474（设备最后一笔数据停在 2024-04-25，数据断流，非查询问题） -->
-		SELECT 632474 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_632474 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 636613 -->
-		SELECT 636613 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_636613 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 650154 -->
-		SELECT 650154 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_650154 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 636685 -->
-		SELECT 636685 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_636685 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 635686（设备最后一笔数据停在 2026-03-16） -->
-		SELECT 635686 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_635686 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 632472（本项目有 2 台环境监测设备，会返回 2 行） -->
-		SELECT 632472 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_632472 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 636927 -->
-		SELECT 636927 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_636927 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
-		UNION ALL
-
-		<!-- 项目 635418（设备最后一笔数据停在 2024-05-10） -->
-		SELECT 635418 AS "engineeringId",
-		       A.ACCESS_DEVICE_ID AS "accessDeviceId",
-		       A.NOISE AS "noise", A.TEMP AS "temp", A.HUMID AS "humid", A.TSP AS "tsp",
-		       TO_CHAR(A.RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
-		FROM (
-			SELECT B.ACCESS_DEVICE_ID, B.NOISE, B.TEMP, B.HUMID, B.TSP, B.RECORD_TIME,
-			       ROW_NUMBER() OVER (PARTITION BY B.ACCESS_DEVICE_ID
-			                          ORDER BY B.RECORD_TIME DESC) AS RN
-			FROM Z_ENVIRONMENTAL_RECORD_635418 B
-			WHERE B.IS_DELETE = 0 AND B.RECORD_TIME IS NOT NULL
-		) A
-		WHERE A.RN = 1
-
+		SELECT ACCESS_DEVICE_ID AS "accessDeviceId",
+		       NOISE            AS "noise",
+		       TEMP             AS "temp",
+		       HUMID            AS "humid",
+		       TSP              AS "tsp",
+		       TO_CHAR(RECORD_TIME, 'YYYY-MM-DD HH24:MI:SS') AS "recordTime"
+		FROM ${tableName}
+		WHERE ACCESS_DEVICE_ID = #{deviceId}
+		  AND IS_DELETE = 0
+		  AND RECORD_TIME IS NOT NULL
+		ORDER BY ENVIRONMENTAL_RECORD_ID DESC
+		FETCH FIRST 1 ROWS ONLY
 	</select>
 
 </mapper>
