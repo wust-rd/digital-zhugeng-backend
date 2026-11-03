@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  用途：月度检查记录自定义查询
+  数据源：主库 DIGITAL_ZHUGENG_DEV
+  只读约束：本文件只取序列值，业务数据写操作由框架按实体注解生成
+-->
+<mapper namespace="com.jeesite.modules.qa.dao.QaInspectRecordDao">
+
+	<!--
+		取检查记录号序列的下一个值。
+		记录号在 Service 里拼成 JY + 两位年份 + 四位序号。
+	-->
+	<select id="nextRecordNo" resultType="java.lang.Long">
+		SELECT SEQ_QA_RECORD_NO.NEXTVAL FROM DUAL
+	</select>
+
+</mapper>
