@@ -13,8 +13,14 @@
 		<result property="engineeringName" column="engineeringName"/>
 		<result property="area" column="area"/>
 		<result property="address" column="address"/>
+		<result property="longitude" column="longitude"/>
+		<result property="latitude" column="latitude"/>
 		<result property="constructionScale" column="constructionScale"/>
 		<result property="contractAmount" column="contractAmount"/>
+		<result property="plannedStartTime" column="plannedStartTime"/>
+		<result property="plannedCompletionTime" column="plannedCompletionTime"/>
+		<result property="keyProjects" column="keyProjects"/>
+		<result property="reportRequired" column="reportRequired"/>
 		<result property="permitNumber" column="permitNumber"/>
 		<result property="projectState" column="projectState"/>
 		<result property="jurisdiction" column="jurisdiction"/>
@@ -36,8 +42,14 @@
 		       e.name                       AS engineeringName,
 		       e.area                       AS area,
 		       e.address                    AS address,
+		       e.longitude                  AS longitude,
+		       e.latitude                   AS latitude,
 		       e.construction_scale         AS constructionScale,
 		       e.contract_amount            AS contractAmount,
+		       e.planned_start_time         AS plannedStartTime,
+		       e.planned_completion_time    AS plannedCompletionTime,
+		       e.key_projects               AS keyProjects,
+		       e.report_Required            AS reportRequired,
 		       e.construction_permit_number AS permitNumber,
 		       e.project_state              AS projectState,
 		       e.jurisdiction               AS jurisdiction

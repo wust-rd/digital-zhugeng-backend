@@ -33,6 +33,16 @@ public class MunicipalEngineering implements Serializable {
 	private String address;
 
 	/**
+	 * 经度
+	 */
+	private String longitude;
+
+	/**
+	 * 纬度
+	 */
+	private String latitude;
+
+	/**
 	 * 建设规模
 	 */
 	private String constructionScale;
@@ -41,6 +51,26 @@ public class MunicipalEngineering implements Serializable {
 	 * 合同金额（万元），原始值可能带千分位
 	 */
 	private String contractAmount;
+
+	/**
+	 * 计划开工时间
+	 */
+	private java.util.Date plannedStartTime;
+
+	/**
+	 * 计划竣工时间
+	 */
+	private java.util.Date plannedCompletionTime;
+
+	/**
+	 * 是否重点项目（1 是 0 否）
+	 */
+	private Integer keyProjects;
+
+	/**
+	 * 是否须报建（1 是 0 否）
+	 */
+	private Integer reportRequired;
 
 	/**
 	 * 施工许可证编号
@@ -89,6 +119,22 @@ public class MunicipalEngineering implements Serializable {
 		this.address = address;
 	}
 
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
 	public String getConstructionScale() {
 		return constructionScale;
 	}
@@ -103,6 +149,38 @@ public class MunicipalEngineering implements Serializable {
 
 	public void setContractAmount(String contractAmount) {
 		this.contractAmount = contractAmount;
+	}
+
+	public java.util.Date getPlannedStartTime() {
+		return plannedStartTime;
+	}
+
+	public void setPlannedStartTime(java.util.Date plannedStartTime) {
+		this.plannedStartTime = plannedStartTime;
+	}
+
+	public java.util.Date getPlannedCompletionTime() {
+		return plannedCompletionTime;
+	}
+
+	public void setPlannedCompletionTime(java.util.Date plannedCompletionTime) {
+		this.plannedCompletionTime = plannedCompletionTime;
+	}
+
+	public Integer getKeyProjects() {
+		return keyProjects;
+	}
+
+	public void setKeyProjects(Integer keyProjects) {
+		this.keyProjects = keyProjects;
+	}
+
+	public Integer getReportRequired() {
+		return reportRequired;
+	}
+
+	public void setReportRequired(Integer reportRequired) {
+		this.reportRequired = reportRequired;
 	}
 
 	public String getPermitNumber() {

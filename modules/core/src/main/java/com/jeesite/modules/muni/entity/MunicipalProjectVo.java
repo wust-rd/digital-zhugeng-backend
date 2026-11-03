@@ -1,7 +1,6 @@
 package com.jeesite.modules.muni.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
@@ -47,12 +46,6 @@ public class MunicipalProjectVo implements Serializable {
 	private String dataSource;
 
 	/**
-	 * 清单中的项目名称
-	 */
-	@JsonProperty("name")
-	private String listProjectName;
-
-	/**
 	 * 行业分类
 	 */
 	private String industry;
@@ -65,14 +58,59 @@ public class MunicipalProjectVo implements Serializable {
 	// ========== 项目基本信息 ==========
 
 	/**
-	 * 项目名称，取自登记库，库中为空时用清单名称
+	 * 项目名称（清单）
 	 */
-	private String projectName;
+	private String nameExcel;
+
+	/**
+	 * 项目名称（登记库），无ID取库时为空
+	 */
+	private String nameDatabase;
+
+	/**
+	 * 总投资（清单），万元
+	 */
+	private String investExcel;
+
+	/**
+	 * 总投资（登记库合同金额），万元，已去千分位；无ID取库时为空
+	 */
+	private String investDatabase;
 
 	/**
 	 * 登记库中的行政区
 	 */
 	private String dbArea;
+
+	/**
+	 * 经度
+	 */
+	private String longitude;
+
+	/**
+	 * 纬度
+	 */
+	private String latitude;
+
+	/**
+	 * 计划开工时间
+	 */
+	private java.util.Date plannedStartTime;
+
+	/**
+	 * 计划竣工时间
+	 */
+	private java.util.Date plannedCompletionTime;
+
+	/**
+	 * 是否重点项目（1 是 0 否）
+	 */
+	private Integer keyProjects;
+
+	/**
+	 * 是否须报建（1 是 0 否）
+	 */
+	private Integer reportRequired;
 
 	/**
 	 * 项目地点
@@ -83,11 +121,6 @@ public class MunicipalProjectVo implements Serializable {
 	 * 面积、长度
 	 */
 	private String constructionScale;
-
-	/**
-	 * 总投资（万元），已去掉千分位
-	 */
-	private String contractAmount;
 
 	/**
 	 * 结构（层数、类型）
@@ -167,14 +200,6 @@ public class MunicipalProjectVo implements Serializable {
 		this.dataSource = dataSource;
 	}
 
-	public String getListProjectName() {
-		return listProjectName;
-	}
-
-	public void setListProjectName(String listProjectName) {
-		this.listProjectName = listProjectName;
-	}
-
 	public String getIndustry() {
 		return industry;
 	}
@@ -192,16 +217,47 @@ public class MunicipalProjectVo implements Serializable {
 	}
 
 	/**
-	 * 项目名称
-	 * <p>
-	 * 登记库有名称时优先，否则回退清单名称，调用方无需再判空。
+	 * 项目名称（清单）
 	 */
-	public String getProjectName() {
-		return projectName == null || projectName.isEmpty() ? listProjectName : projectName;
+	public String getNameExcel() {
+		return nameExcel;
 	}
 
-	public void setProjectName(String projectName) {
-		this.projectName = projectName;
+	public void setNameExcel(String nameExcel) {
+		this.nameExcel = nameExcel;
+	}
+
+	/**
+	 * 项目名称（登记库）
+	 */
+	public String getNameDatabase() {
+		return nameDatabase;
+	}
+
+	public void setNameDatabase(String nameDatabase) {
+		this.nameDatabase = nameDatabase;
+	}
+
+	/**
+	 * 总投资（清单，万元）
+	 */
+	public String getInvestExcel() {
+		return investExcel;
+	}
+
+	public void setInvestExcel(String investExcel) {
+		this.investExcel = investExcel;
+	}
+
+	/**
+	 * 总投资（登记库合同金额，万元）
+	 */
+	public String getInvestDatabase() {
+		return investDatabase;
+	}
+
+	public void setInvestDatabase(String investDatabase) {
+		this.investDatabase = investDatabase;
 	}
 
 	public String getDbArea() {
@@ -210,6 +266,54 @@ public class MunicipalProjectVo implements Serializable {
 
 	public void setDbArea(String dbArea) {
 		this.dbArea = dbArea;
+	}
+
+	public String getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+
+	public String getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+
+	public java.util.Date getPlannedStartTime() {
+		return plannedStartTime;
+	}
+
+	public void setPlannedStartTime(java.util.Date plannedStartTime) {
+		this.plannedStartTime = plannedStartTime;
+	}
+
+	public java.util.Date getPlannedCompletionTime() {
+		return plannedCompletionTime;
+	}
+
+	public void setPlannedCompletionTime(java.util.Date plannedCompletionTime) {
+		this.plannedCompletionTime = plannedCompletionTime;
+	}
+
+	public Integer getKeyProjects() {
+		return keyProjects;
+	}
+
+	public void setKeyProjects(Integer keyProjects) {
+		this.keyProjects = keyProjects;
+	}
+
+	public Integer getReportRequired() {
+		return reportRequired;
+	}
+
+	public void setReportRequired(Integer reportRequired) {
+		this.reportRequired = reportRequired;
 	}
 
 	public String getAddress() {
@@ -226,14 +330,6 @@ public class MunicipalProjectVo implements Serializable {
 
 	public void setConstructionScale(String constructionScale) {
 		this.constructionScale = constructionScale;
-	}
-
-	public String getContractAmount() {
-		return contractAmount;
-	}
-
-	public void setContractAmount(String contractAmount) {
-		this.contractAmount = contractAmount;
 	}
 
 	public String getStructure() {

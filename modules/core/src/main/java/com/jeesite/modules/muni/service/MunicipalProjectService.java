@@ -119,18 +119,24 @@ public class MunicipalProjectService {
 	}
 
 	/**
-	 * 用登记库信息覆盖清单行，库中为空时保留清单值
+	 * 用登记库信息覆盖清单行，清单名称与总投资保留在 Excel 字段，库值单独落库字段
 	 */
 	private void applyEngineering(MunicipalProjectVo row, MunicipalEngineering engineering,
 			Map<String, Set<String>> units) {
 
 		row.setDataSource(MunicipalProjectVo.SOURCE_DB);
-		row.setProjectName(coalesce(engineering.getEngineeringName(), row.getListProjectName()));
+		row.setNameDatabase(engineering.getEngineeringName());
+		row.setInvestDatabase(normalizeAmount(engineering.getContractAmount()));
 		row.setDbArea(engineering.getArea());
 		row.setJurisdiction(engineering.getJurisdiction());
+		row.setLongitude(engineering.getLongitude());
+		row.setLatitude(engineering.getLatitude());
+		row.setPlannedStartTime(engineering.getPlannedStartTime());
+		row.setPlannedCompletionTime(engineering.getPlannedCompletionTime());
+		row.setKeyProjects(engineering.getKeyProjects());
+		row.setReportRequired(engineering.getReportRequired());
 		row.setAddress(coalesce(engineering.getAddress(), row.getAddress()));
 		row.setConstructionScale(coalesce(engineering.getConstructionScale(), row.getConstructionScale()));
-		row.setContractAmount(coalesce(normalizeAmount(engineering.getContractAmount()), row.getContractAmount()));
 		row.setPermitNumber(coalesce(engineering.getPermitNumber(), row.getPermitNumber()));
 		row.setBuildStatus(coalesce(engineering.getProjectState(), row.getBuildStatus()));
 		row.setBuildUnit(coalesce(unitText(units, UNIT_BUILD), row.getBuildUnit()));
