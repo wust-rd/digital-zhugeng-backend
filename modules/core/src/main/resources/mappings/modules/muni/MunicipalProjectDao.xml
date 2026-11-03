@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  项目信息登记库（XMXXDJ）工程与责任主体查询
+  数据源：xmxxdj（10.13.28.237:5236/XMXXDJ，只读账号）
+  注意：本文件只允许出现 SELECT，严禁写操作。
+-->
+<mapper namespace="com.jeesite.modules.muni.dao.MunicipalProjectDao">
+
+	<!-- 工程基本信息 -->
+	<resultMap id="engineeringMap" type="com.jeesite.modules.muni.entity.MunicipalEngineering">
+		<result property="engineeringId" column="engineeringId"/>
+		<result property="engineeringName" column="engineeringName"/>
+		<result property="area" column="area"/>
+		<result property="address" column="address"/>
+		<result property="constructionScale" column="constructionScale"/>
+		<result property="contractAmount" column="contractAmount"/>
+		<result property="permitNumber" column="permitNumber"/>
+		<result property="projectState" column="projectState"/>
+		<result property="jurisdiction" column="jurisdiction"/>
+	</resultMap>
+
+	<!-- 责任主体 -->
+	<resultMap id="unitMap" type="com.jeesite.modules.muni.entity.MunicipalResponsibilityUnit">
+		<result property="engineeringId" column="engineeringId"/>
+		<result property="unitType" column="unitType"/>
+		<result property="unitName" column="unitName"/>
+	</resultMap>
+
+	<!--
+	  工程基本信息：一次 IN 查询取全部清单ID对应的工程
+	  注意 contract_amount 是 VARCHAR 且部分数据带千分位，按原文取出，出去后再清洗
+	-->
+	<select id="findEngineeringList" resultMap="engineeringMap">
+		SELECT e.id                         AS engineeringId,
+		       e.name                       AS engineeringName,
+		       e.area                       AS area,
+		       e.address                    AS address,
+		       e.construction_scale         AS constructionScale,
+		       e.contract_amount            AS contractAmount,
+		       e.construction_permit_number AS permitNumber,
+		       e.project_state              AS projectState,
+		       e.jurisdiction               AS jurisdiction
+		  FROM XMXXDJ.supervision_engineering e
+		 WHERE e.id IN
+		<foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+	</select>
+
+	<!--
+	  责任主体：只取建设单位、施工单位、监理单位
+	  一个工程同一类型可能有多家单位，按 id 升序返回，出去后按类型拼接
+	-->
+	<select id="findUnitList" resultMap="unitMap">
+		SELECT u.engineering_id AS engineeringId,
+		       u.type           AS unitType,
+		       u.name           AS unitName
+		  FROM XMXXDJ.supervision_responsibility_unit u
+		 WHERE u.engineering_id IN
+		<foreach collection="ids" item="id" open="(" separator="," close=")">#{id}</foreach>
+		   AND u.type IN ('建设单位', '施工单位', '监理单位')
+		   AND u.name IS NOT NULL
+		 ORDER BY u.engineering_id, u.id
+	</select>
+
+</mapper>
