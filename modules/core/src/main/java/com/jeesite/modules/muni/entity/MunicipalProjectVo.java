@@ -65,7 +65,7 @@ public class MunicipalProjectVo implements Serializable {
 	/**
 	 * 项目名称（登记库），无ID取库时为空
 	 */
-	private String nameDatabase;
+	private String nameDb;
 
 	/**
 	 * 总投资（清单），万元
@@ -75,7 +75,7 @@ public class MunicipalProjectVo implements Serializable {
 	/**
 	 * 总投资（登记库合同金额），万元，已去千分位；无ID取库时为空
 	 */
-	private String investDatabase;
+	private String investDb;
 
 	/**
 	 * 登记库中的行政区
@@ -230,12 +230,12 @@ public class MunicipalProjectVo implements Serializable {
 	/**
 	 * 项目名称（登记库）
 	 */
-	public String getNameDatabase() {
-		return nameDatabase;
+	public String getNameDb() {
+		return nameDb;
 	}
 
-	public void setNameDatabase(String nameDatabase) {
-		this.nameDatabase = nameDatabase;
+	public void setNameDb(String nameDb) {
+		this.nameDb = nameDb;
 	}
 
 	/**
@@ -252,12 +252,12 @@ public class MunicipalProjectVo implements Serializable {
 	/**
 	 * 总投资（登记库合同金额，万元）
 	 */
-	public String getInvestDatabase() {
-		return investDatabase;
+	public String getInvestDb() {
+		return investDb;
 	}
 
-	public void setInvestDatabase(String investDatabase) {
-		this.investDatabase = investDatabase;
+	public void setInvestDb(String investDb) {
+		this.investDb = investDb;
 	}
 
 	public String getDbArea() {

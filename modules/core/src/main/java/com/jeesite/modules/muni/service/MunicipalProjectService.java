@@ -125,8 +125,8 @@ public class MunicipalProjectService {
 			Map<String, Set<String>> units) {
 
 		row.setDataSource(MunicipalProjectVo.SOURCE_DB);
-		row.setNameDatabase(engineering.getEngineeringName());
-		row.setInvestDatabase(normalizeAmount(engineering.getContractAmount()));
+		row.setNameDb(engineering.getEngineeringName());
+		row.setInvestDb(normalizeAmount(engineering.getContractAmount()));
 		row.setDbArea(engineering.getArea());
 		row.setJurisdiction(engineering.getJurisdiction());
 		row.setLongitude(engineering.getLongitude());
