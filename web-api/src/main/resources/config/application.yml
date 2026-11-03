@@ -65,7 +65,7 @@ jdbc:
 
   # 多数据源：工地库（ZHGD_2，只读查询，账号 read_all 本身仅具 SELECT 权限，
   # 应用层也严禁向该数据源写入：只允许把查询类 Dao 指定到此数据源）
-  dataSourceNames: gongdi
+  dataSourceNames: gongdi, xmxxdj
   gongdi:
     type: dameng
     driver: dm.jdbc.driver.DmDriver
@@ -82,11 +82,28 @@ jdbc:
       maxActive: 10
       maxWait: 10000
 
+  # 多数据源：项目信息登记库（XMXXDJ，只读查询，与工地库同一实例不同 schema）
+  # 市政项目基本信息接口从这里取工程与责任主体，同样只读，禁止写操作
+  xmxxdj:
+    type: dameng
+    driver: dm.jdbc.driver.DmDriver
+    url: jdbc:dm://10.13.28.237:5236/XMXXDJ?schema=XMXXDJ
+    username: read_all
+    password: Read@123456
+    testSql: SELECT 1 FROM DUAL
+    # 同 gongdi：懒加载，登记库不可用时不拖垮服务启动
+    pool:
+      init: 0
+      minIdle: 0
+      maxActive: 10
+      maxWait: 10000
+
   # Dao 与数据源映射（Dao 类名 = 数据源名称，优先于 @MyBatisDao(dataSourceName) 注解）
   # 用法一：在映射里按包/类指定，如  com.jeesite.modules.gongdi.dao. = gongdi
   # 用法二：在 Dao 上加 @MyBatisDao(dataSourceName="gongdi")
   mybatisDaoAndDataSourceMappings: |
     com.jeesite.modules.gongdi.dao. = gongdi
+    com.jeesite.modules.muni.dao. = xmxxdj
 
 #  # Oracle 数据库配置
 #  type: oracle
@@ -748,6 +765,7 @@ shiro:
   # 提示：填写过滤规则，请注意先后顺序，从上到下，先匹配先受用规则，匹配成功后不再继续匹配。
   filterChainDefinitions: |
     /api/env/** = anon
+    /api/muni/** = anon
     ${adminPath}/** = user
     /** = anon
 
