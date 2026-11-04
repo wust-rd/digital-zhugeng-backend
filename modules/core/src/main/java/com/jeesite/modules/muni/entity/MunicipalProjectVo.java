@@ -1,6 +1,7 @@
 package com.jeesite.modules.muni.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
@@ -128,9 +129,20 @@ public class MunicipalProjectVo implements Serializable {
 	private String structure;
 
 	/**
-	 * 联系人联系方式
+	 * 联系人姓名
 	 */
-	private String contact;
+	private String contactName;
+
+	/**
+	 * 联系电话
+	 */
+	private String contactPhone;
+
+	/**
+	 * 原始「联系人联系方式」值，反序列化用，拆分后不对外输出
+	 */
+	@JsonProperty(value = "contact", access = JsonProperty.Access.WRITE_ONLY)
+	private String rawContact;
 
 	/**
 	 * 形象进度
@@ -340,12 +352,31 @@ public class MunicipalProjectVo implements Serializable {
 		this.structure = structure;
 	}
 
-	public String getContact() {
-		return contact;
+	public String getContactName() {
+		return contactName;
 	}
 
-	public void setContact(String contact) {
-		this.contact = contact;
+	public void setContactName(String contactName) {
+		this.contactName = contactName;
+	}
+
+	public String getContactPhone() {
+		return contactPhone;
+	}
+
+	public void setContactPhone(String contactPhone) {
+		this.contactPhone = contactPhone;
+	}
+
+	/**
+	 * 原始联系人值，仅供反序列化与拆分使用
+	 */
+	public String getRawContact() {
+		return rawContact;
+	}
+
+	public void setRawContact(String rawContact) {
+		this.rawContact = rawContact;
 	}
 
 	public String getProgress() {

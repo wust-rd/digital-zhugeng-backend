@@ -7,6 +7,7 @@ import com.jeesite.modules.muni.dao.MunicipalProjectDao;
 import com.jeesite.modules.muni.entity.MunicipalEngineering;
 import com.jeesite.modules.muni.entity.MunicipalProjectVo;
 import com.jeesite.modules.muni.entity.MunicipalResponsibilityUnit;
+import com.jeesite.modules.muni.util.ContactSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
@@ -89,6 +90,11 @@ public class MunicipalProjectService {
 	public List<MunicipalProjectVo> queryProjectList() {
 
 		List<MunicipalProjectVo> rows = loadBaseline();
+		for (MunicipalProjectVo row : rows) {
+			String[] contact = ContactSplitter.split(row.getRawContact());
+			row.setContactName(contact[0]);
+			row.setContactPhone(contact[1]);
+		}
 		List<Long> ids = collectProjectIds(rows);
 		if (ids.isEmpty()) {
 			logger.info("[市政项目] 清单无项目ID，全部取清单值，共 {} 条", rows.size());
