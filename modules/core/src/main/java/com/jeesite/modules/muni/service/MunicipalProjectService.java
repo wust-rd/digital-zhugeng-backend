@@ -66,6 +66,14 @@ public class MunicipalProjectService {
 	 */
 	private static final String UNIT_SEPARATOR = "、";
 
+	/**
+	 * 保留清单（JSON）经纬度、不被登记库覆盖的项目ID
+	 * 这些项目在登记库中的坐标不准确，统一取清单基线值
+	 */
+	private static final Set<Long> KEEP_BASELINE_COORDINATE_IDS = Set.of(
+		44116L, 30280L, 44147L, 44148L
+	);
+
 	private final MunicipalProjectDao municipalProjectDao;
 
 	/**
@@ -135,8 +143,10 @@ public class MunicipalProjectService {
 		row.setInvestDb(normalizeAmount(engineering.getContractAmount()));
 		row.setDbArea(engineering.getArea());
 		row.setJurisdiction(engineering.getJurisdiction());
-		row.setLongitude(engineering.getLongitude());
-		row.setLatitude(engineering.getLatitude());
+		if (!KEEP_BASELINE_COORDINATE_IDS.contains(row.getProjectId())) {
+			row.setLongitude(engineering.getLongitude());
+			row.setLatitude(engineering.getLatitude());
+		}
 		row.setPlannedStartTime(engineering.getPlannedStartTime());
 		row.setPlannedCompletionTime(engineering.getPlannedCompletionTime());
 		row.setKeyProjects(engineering.getKeyProjects());
