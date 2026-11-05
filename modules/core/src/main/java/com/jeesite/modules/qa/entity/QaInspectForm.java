@@ -22,28 +22,28 @@ public class QaInspectForm extends QaInspectRecord {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 危大扣分项勾选明细
+	 * 危大扣分项勾选明细，元素为扣分项编码（plan / site / accept）
 	 */
-	private List<QaInspectDeduct> deductList = new ArrayList<>();
+	private List<String> deductList = new ArrayList<>();
 
 	/**
-	 * 基坑档位勾选明细
+	 * 基坑档位勾选明细，元素为档位编码（P0~P4）
 	 */
-	private List<QaInspectPit> pitList = new ArrayList<>();
+	private List<String> pitList = new ArrayList<>();
 
-	public List<QaInspectDeduct> getDeductList() {
+	public List<String> getDeductList() {
 		return deductList;
 	}
 
-	public void setDeductList(List<QaInspectDeduct> deductList) {
+	public void setDeductList(List<String> deductList) {
 		this.deductList = deductList;
 	}
 
-	public List<QaInspectPit> getPitList() {
+	public List<String> getPitList() {
 		return pitList;
 	}
 
-	public void setPitList(List<QaInspectPit> pitList) {
+	public void setPitList(List<String> pitList) {
 		this.pitList = pitList;
 	}
 

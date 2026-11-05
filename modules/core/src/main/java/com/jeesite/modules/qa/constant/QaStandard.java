@@ -43,6 +43,16 @@ public final class QaStandard {
 	public static final String RECORD_STATUS_VOID = "3";
 
 	/**
+	 * 检查状态：正常
+	 */
+	public static final String CHECK_STATUS_NORMAL = "1";
+
+	/**
+	 * 检查状态：待检查
+	 */
+	public static final String CHECK_STATUS_PENDING = "2";
+
+	/**
 	 * 智慧监管分数来源：手工填写
 	 */
 	public static final String SMART_SOURCE_MANUAL = "1";

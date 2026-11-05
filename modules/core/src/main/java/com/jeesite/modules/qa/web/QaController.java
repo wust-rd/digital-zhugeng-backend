@@ -1,6 +1,7 @@
 package com.jeesite.modules.qa.web;
 
 import com.jeesite.common.config.Global;
+import com.jeesite.common.entity.Page;
 import com.jeesite.common.web.BaseController;
 import com.jeesite.modules.qa.entity.QaInspectForm;
 import com.jeesite.modules.qa.entity.QaInspectRecord;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.function.Supplier;
 
 /**
@@ -45,13 +48,14 @@ public class QaController extends BaseController {
 	}
 
 	/**
-	 * 项目台账列表
+	 * 项目台账列表（分页）
 	 */
 	@RequestMapping(value = "project/list")
 	@ResponseBody
-	public String projectList(QaProject project) {
+	public String projectList(QaProject project, HttpServletRequest request, HttpServletResponse response) {
 
-		return execute("查询项目台账", () -> qaInspectService.findProjectList(project));
+		project.setPage(new Page<>(request, response));
+		return execute("查询项目台账", () -> qaInspectService.findProjectPage(project));
 	}
 
 	/**
@@ -78,13 +82,14 @@ public class QaController extends BaseController {
 	}
 
 	/**
-	 * 检查记录列表
+	 * 检查记录列表（分页）
 	 */
 	@RequestMapping(value = "inspect/list")
 	@ResponseBody
-	public String inspectList(QaInspectRecord where) {
+	public String inspectList(QaInspectRecord where, HttpServletRequest request, HttpServletResponse response) {
 
-		return execute("查询检查记录", () -> qaInspectService.findRecordList(where));
+		where.setPage(new Page<>(request, response));
+		return execute("查询检查记录", () -> qaInspectService.findRecordPage(where));
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.jeesite.modules.qa.service;
 
+import com.jeesite.common.entity.Page;
 import com.jeesite.common.lang.StringUtils;
 import com.jeesite.common.mybatis.mapper.query.QueryType;
 import com.jeesite.modules.qa.constant.QaStandard;
@@ -93,9 +94,34 @@ public class QaInspectService {
 	 * @param where 查询条件
 	 * @return 项目列表
 	 */
-	public List<QaProject> findProjectList(QaProject where) {
+	public Page<QaProject> findProjectPage(QaProject where) {
 
-		return qaProjectDao.findList(where);
+		Page<QaProject> page = where.getPage();
+		List<QaProject> list = qaProjectDao.findList(where);
+		if (page != null) {
+			page.setList(list);
+		}
+		String curMonth = YearMonth.now().toString();
+		for (QaProject project : list) {
+			project.setCheckStatus(checkStatusOf(project, curMonth));
+		}
+		return page;
+	}
+
+	/**
+	 * 查询检查记录列表（分页）
+	 *
+	 * @param where 查询条件，已带分页参数
+	 * @return 分页结果
+	 */
+	public Page<QaInspectRecord> findRecordPage(QaInspectRecord where) {
+
+		Page<QaInspectRecord> page = where.getPage();
+		List<QaInspectRecord> list = qaInspectRecordDao.findList(where);
+		if (page != null) {
+			page.setList(list);
+		}
+		return page;
 	}
 
 	/**
@@ -106,7 +132,29 @@ public class QaInspectService {
 	 */
 	public QaProject getProject(String id) {
 
+		if (StringUtils.isBlank(id)) {
+			throw new IllegalArgumentException("项目ID不能为空");
+		}
 		return qaProjectDao.get(new QaProject(id));
+	}
+
+	/**
+	 * 推导项目的检查状态
+	 * <p>
+	 * 从未检查过，或下次应检月已到（含本月），视为待检查；否则正常。
+	 *
+	 * @param project  项目
+	 * @param curMonth 当前月 yyyy-MM
+	 * @return 1 正常 / 2 待检查
+	 */
+	private String checkStatusOf(QaProject project, String curMonth) {
+
+		if (StringUtils.isBlank(project.getLastInspectMonth())
+				|| StringUtils.isBlank(project.getNextDueMonth())
+				|| project.getNextDueMonth().compareTo(curMonth) <= 0) {
+			return QaStandard.CHECK_STATUS_PENDING;
+		}
+		return QaStandard.CHECK_STATUS_NORMAL;
 	}
 
 	/**
@@ -127,17 +175,6 @@ public class QaInspectService {
 			project.preUpdate();
 			qaProjectDao.update(project);
 		}
-	}
-
-	/**
-	 * 查询检查记录列表
-	 *
-	 * @param where 查询条件
-	 * @return 记录列表
-	 */
-	public List<QaInspectRecord> findRecordList(QaInspectRecord where) {
-
-		return qaInspectRecordDao.findList(where);
 	}
 
 	/**
@@ -281,6 +318,9 @@ public class QaInspectService {
 	 */
 	public List<Map<String, Object>> archive(String projectId) {
 
+		if (StringUtils.isBlank(projectId)) {
+			throw new IllegalArgumentException("项目ID不能为空");
+		}
 		Map<String, QaInspectRecord> byMonth = new LinkedHashMap<>();
 		for (QaInspectRecord r : findSubmittedRecords(projectId)) {
 			byMonth.putIfAbsent(r.getInspectMonth(), r);
@@ -489,18 +529,17 @@ public class QaInspectService {
 	/**
 	 * 危大扣分项规范化：按编码查标准分值、去重、拒绝未知编码
 	 */
-	private List<QaInspectDeduct> normalizeDeduct(List<QaInspectDeduct> list) {
+	private List<QaInspectDeduct> normalizeDeduct(List<String> codes) {
 
 		List<QaInspectDeduct> result = new ArrayList<>();
-		if (list == null) {
+		if (codes == null) {
 			return result;
 		}
 		Set<String> seen = new LinkedHashSet<>();
-		for (QaInspectDeduct item : list) {
-			if (item == null || StringUtils.isBlank(item.getDeductCode())) {
+		for (String code : codes) {
+			if (StringUtils.isBlank(code)) {
 				continue;
 			}
-			String code = item.getDeductCode();
 			Double score = QaStandard.deductScore(code);
 			if (score == null) {
 				throw new IllegalArgumentException("未知扣分项编码：" + code);
@@ -508,6 +547,8 @@ public class QaInspectService {
 			if (!seen.add(code)) {
 				throw new IllegalArgumentException("扣分项重复勾选：" + code);
 			}
+			QaInspectDeduct item = new QaInspectDeduct();
+			item.setDeductCode(code);
 			item.setDeductScore(score);
 			result.add(item);
 		}
@@ -519,16 +560,15 @@ public class QaInspectService {
 	 * <p>
 	 * P4 与 P0~P3 互斥；未勾选时兜底 P4，故明细至少一行。
 	 */
-	private List<QaInspectPit> normalizePit(List<QaInspectPit> list) {
+	private List<QaInspectPit> normalizePit(List<String> codes) {
 
 		List<QaInspectPit> result = new ArrayList<>();
-		if (list != null) {
+		if (codes != null) {
 			Set<String> seen = new LinkedHashSet<>();
-			for (QaInspectPit item : list) {
-				if (item == null || StringUtils.isBlank(item.getPitCode())) {
+			for (String code : codes) {
+				if (StringUtils.isBlank(code)) {
 					continue;
 				}
-				String code = item.getPitCode();
 				Double score = QaStandard.pitScore(code);
 				if (score == null) {
 					throw new IllegalArgumentException("未知基坑档位编码：" + code);
@@ -536,6 +576,8 @@ public class QaInspectService {
 				if (!seen.add(code)) {
 					throw new IllegalArgumentException("基坑档位重复勾选：" + code);
 				}
+				QaInspectPit item = new QaInspectPit();
+				item.setPitCode(code);
 				item.setPitScore(score);
 				result.add(item);
 			}

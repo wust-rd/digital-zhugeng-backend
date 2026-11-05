@@ -159,6 +159,11 @@ public class QaProject extends DataEntity<QaProject> {
 	 */
 	protected Integer inspectCount;
 
+	/**
+	 * 检查状态：1 正常 / 2 待检查（非持久化，查询时按最近检查月推导）
+	 */
+	protected String checkStatus;
+
 	public QaProject() {
 		this(null);
 	}
@@ -343,6 +348,14 @@ public class QaProject extends DataEntity<QaProject> {
 
 	public void setInspectCount(Integer inspectCount) {
 		this.inspectCount = inspectCount;
+	}
+
+	public String getCheckStatus() {
+		return checkStatus;
+	}
+
+	public void setCheckStatus(String checkStatus) {
+		this.checkStatus = checkStatus;
 	}
 
 }
