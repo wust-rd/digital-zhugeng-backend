@@ -87,6 +87,20 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 
+		<!-- 工地环境监测模块（含市政项目信息） -->
+		<dependency>
+			<groupId>com.jeesite</groupId>
+			<artifactId>jeesite-module-gongdi</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
+		<!-- 质安常态化检查模块 -->
+		<dependency>
+			<groupId>com.jeesite</groupId>
+			<artifactId>jeesite-module-qa</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+
 		<!-- 热部署工具
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

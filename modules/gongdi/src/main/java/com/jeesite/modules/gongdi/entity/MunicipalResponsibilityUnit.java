@@ -1,4 +1,4 @@
-package com.jeesite.modules.muni.entity;
+package com.jeesite.modules.gongdi.entity;
 
 import java.io.Serializable;
 

@@ -1,13 +1,13 @@
-package com.jeesite.modules.muni.service;
+package com.jeesite.modules.gongdi.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jeesite.common.lang.StringUtils;
-import com.jeesite.modules.muni.dao.MunicipalProjectDao;
-import com.jeesite.modules.muni.entity.MunicipalEngineering;
-import com.jeesite.modules.muni.entity.MunicipalProjectVo;
-import com.jeesite.modules.muni.entity.MunicipalResponsibilityUnit;
-import com.jeesite.modules.muni.util.ContactSplitter;
+import com.jeesite.modules.gongdi.dao.MunicipalProjectDao;
+import com.jeesite.modules.gongdi.entity.MunicipalEngineering;
+import com.jeesite.modules.gongdi.entity.MunicipalProjectVo;
+import com.jeesite.modules.gongdi.entity.MunicipalResponsibilityUnit;
+import com.jeesite.modules.gongdi.util.ContactSplitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;

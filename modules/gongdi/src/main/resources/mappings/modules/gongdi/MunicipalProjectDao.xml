@@ -5,10 +5,10 @@
   数据源：xmxxdj（10.13.28.237:5236/XMXXDJ，只读账号）
   注意：本文件只允许出现 SELECT，严禁写操作。
 -->
-<mapper namespace="com.jeesite.modules.muni.dao.MunicipalProjectDao">
+<mapper namespace="com.jeesite.modules.gongdi.dao.MunicipalProjectDao">
 
 	<!-- 工程基本信息 -->
-	<resultMap id="engineeringMap" type="com.jeesite.modules.muni.entity.MunicipalEngineering">
+	<resultMap id="engineeringMap" type="com.jeesite.modules.gongdi.entity.MunicipalEngineering">
 		<result property="engineeringId" column="engineeringId"/>
 		<result property="engineeringName" column="engineeringName"/>
 		<result property="area" column="area"/>
@@ -27,7 +27,7 @@
 	</resultMap>
 
 	<!-- 责任主体 -->
-	<resultMap id="unitMap" type="com.jeesite.modules.muni.entity.MunicipalResponsibilityUnit">
+	<resultMap id="unitMap" type="com.jeesite.modules.gongdi.entity.MunicipalResponsibilityUnit">
 		<result property="engineeringId" column="engineeringId"/>
 		<result property="unitType" column="unitType"/>
 		<result property="unitName" column="unitName"/>

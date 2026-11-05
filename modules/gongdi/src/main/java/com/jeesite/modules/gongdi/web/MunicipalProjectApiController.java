@@ -1,9 +1,9 @@
-package com.jeesite.modules.muni.web;
+package com.jeesite.modules.gongdi.web;
 
 import com.jeesite.common.config.Global;
 import com.jeesite.common.web.BaseController;
-import com.jeesite.modules.muni.entity.MunicipalProjectVo;
-import com.jeesite.modules.muni.service.MunicipalProjectService;
+import com.jeesite.modules.gongdi.entity.MunicipalProjectVo;
+import com.jeesite.modules.gongdi.service.MunicipalProjectService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

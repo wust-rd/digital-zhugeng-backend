@@ -1,8 +1,8 @@
-package com.jeesite.modules.muni.dao;
+package com.jeesite.modules.gongdi.dao;
 
 import com.jeesite.common.mybatis.annotation.MyBatisDao;
-import com.jeesite.modules.muni.entity.MunicipalEngineering;
-import com.jeesite.modules.muni.entity.MunicipalResponsibilityUnit;
+import com.jeesite.modules.gongdi.entity.MunicipalEngineering;
+import com.jeesite.modules.gongdi.entity.MunicipalResponsibilityUnit;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

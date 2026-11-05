@@ -98,12 +98,12 @@ jdbc:
       maxActive: 10
       maxWait: 10000
 
-  # Dao 与数据源映射（Dao 类名 = 数据源名称，优先于 @MyBatisDao(dataSourceName) 注解）
-  # 用法一：在映射里按包/类指定，如  com.jeesite.modules.gongdi.dao. = gongdi
-  # 用法二：在 Dao 上加 @MyBatisDao(dataSourceName="gongdi")
+  # Dao 与数据源映射
+  # 用法一：在映射里按包/类指定，如  com.jeesite.modules.xxx.dao. = 数据源名
+  # 用法二：在 Dao 上加 @MyBatisDao(dataSourceName="数据源名")，优先于包级映射
+  # 说明：gongdi 包下两个 Dao 走不同数据源（工地库 / 登记库），
+  # 统一靠 @MyBatisDao(dataSourceName) 注解区分，这里不再写包级映射
   mybatisDaoAndDataSourceMappings: |
-    com.jeesite.modules.gongdi.dao. = gongdi
-    com.jeesite.modules.muni.dao. = xmxxdj
 
 #  # Oracle 数据库配置
 #  type: oracle

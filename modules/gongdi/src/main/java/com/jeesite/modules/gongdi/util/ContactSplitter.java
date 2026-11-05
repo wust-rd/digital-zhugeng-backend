@@ -1,4 +1,4 @@
-package com.jeesite.modules.muni.util;
+package com.jeesite.modules.gongdi.util;
 
 import com.jeesite.common.lang.StringUtils;
 

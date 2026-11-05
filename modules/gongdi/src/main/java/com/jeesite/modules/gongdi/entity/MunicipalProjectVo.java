@@ -1,4 +1,4 @@
-package com.jeesite.modules.muni.entity;
+package com.jeesite.modules.gongdi.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
